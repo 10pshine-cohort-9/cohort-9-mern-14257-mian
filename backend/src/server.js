@@ -5,6 +5,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const logger = require("./utils/logger");
 const { connectDB } = require("./config/db");
+const noteRoutes = require("./routes/noteRoutes");
 
 const authRoutes = require("./routes/authRoutes");
 const errorHandler = require("./middlewares/errorHandler");
@@ -31,6 +32,7 @@ app.use(express.json());
 app.use(pinoHttp({ logger }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/notes", noteRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Notes App Backend is running!" });
