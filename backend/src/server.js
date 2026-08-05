@@ -11,6 +11,18 @@ const errorHandler = require("./middlewares/errorHandler");
 
 dotenv.config();
 
+if (process.env.NODE_ENV !== "development") {
+  if (
+    !process.env.JWT_SECRET ||
+    process.env.JWT_SECRET === "your_random_string_goes_here"
+  ) {
+    console.error(
+      "FATAL ERROR: A secure JWT_SECRET is required in production.",
+    );
+    process.exit(1);
+  }
+}
+
 const app = express();
 
 app.use(helmet());
