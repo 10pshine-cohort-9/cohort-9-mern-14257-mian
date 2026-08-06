@@ -43,10 +43,18 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 if (require.main === module) {
-  app.listen(PORT, async () => {
-    logger.info(`Server is listening on port ${PORT}`);
-    await connectDB();
-  });
+  const startServer = async () => {
+    try {
+      await connectDB();
+      app.listen(PORT, () =>
+        logger.info(`Server is listening on port ${PORT}`),
+      );
+    } catch (error) {
+      logger.error(`Server failed to start: ${error.message}`);
+      process.exit(1);
+    }
+  };
+  startServer();
 }
 
 module.exports = app;

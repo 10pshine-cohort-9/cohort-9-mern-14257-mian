@@ -8,6 +8,11 @@ const signup = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
+    if (!name || !email || !password) {
+      res.status(400);
+      throw new Error("Please provide all required fields");
+    }
+
     const [existingUsers] = await pool.query(
       "SELECT * FROM users WHERE email = ?",
       [email],
@@ -45,6 +50,11 @@ const signup = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(400);
+      throw new Error("Please provide email and password");
+    }
 
     const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
       email,
