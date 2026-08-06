@@ -1,7 +1,7 @@
 const request = require("supertest");
 const { expect } = require("chai");
 const app = require("../server");
-const { pool } = require("../config/db");
+const { pool, connectDB } = require("../config/db");
 
 describe("Authentication API Endpoints", () => {
   const testUser = {
@@ -10,10 +10,8 @@ describe("Authentication API Endpoints", () => {
     password: "securepassword123",
   };
 
-  // Connect to DB before tests run
   before(async () => {
-    const connection = await pool.getConnection();
-    connection.release();
+    await connectDB();
   });
 
   it("should successfully register a new user", async () => {

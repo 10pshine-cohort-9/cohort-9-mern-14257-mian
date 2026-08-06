@@ -1,7 +1,7 @@
 const request = require("supertest");
 const { expect } = require("chai");
 const app = require("../server");
-const { pool } = require("../config/db");
+const { pool, connectDB } = require("../config/db");
 
 describe("Notes API Endpoints", () => {
   let token;
@@ -13,8 +13,9 @@ describe("Notes API Endpoints", () => {
     password: "securepassword123",
   };
 
-  // Register and login a test user before running notes tests to get a valid token
   before(async () => {
+    await connectDB();
+
     await request(app).post("/api/auth/signup").send(testUser);
     const loginRes = await request(app).post("/api/auth/login").send({
       email: testUser.email,
@@ -40,7 +41,7 @@ describe("Notes API Endpoints", () => {
     expect(res.status).to.equal(201);
     expect(res.body).to.have.property("id");
     expect(res.body.title).to.equal("My First Mocha Note");
-    noteId = res.body.id; // Save ID for update/delete tests
+    noteId = res.body.id;
   });
 
   it("should successfully retrieve all user notes", async () => {
