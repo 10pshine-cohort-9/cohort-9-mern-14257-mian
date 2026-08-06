@@ -8,9 +8,16 @@ const signup = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
+    if (
+      !name ||
+      typeof name !== "string" ||
+      !email ||
+      typeof email !== "string" ||
+      !password ||
+      typeof password !== "string"
+    ) {
       res.status(400);
-      throw new Error("Please provide all required fields");
+      throw new Error("Please provide all required fields as valid text");
     }
 
     const [existingUsers] = await pool.query(
@@ -51,9 +58,14 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (
+      !email ||
+      typeof email !== "string" ||
+      !password ||
+      typeof password !== "string"
+    ) {
       res.status(400);
-      throw new Error("Please provide email and password");
+      throw new Error("Please provide a valid email and password");
     }
 
     const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
