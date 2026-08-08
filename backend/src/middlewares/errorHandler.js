@@ -1,14 +1,27 @@
 const logger = require("../utils/logger");
 
 const errorHandler = (err, req, res, next) => {
-  // Log the exception using Pino
-  logger.error(`Error: ${err.message}`);
+  const statusCode =
+    res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
 
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode).json({
-    message: statusCode === 500 ? "Internal Server Error" : err.message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+  logger.error({
+    err: {
+      message: err.message,
+      stack: err.stack,
+    },
+    method: req.method,
+    url: req.originalUrl,
   });
+
+  const responsePayload = {
+    message: statusCode >= 500 ? "Internal Server Error" : err.message,
+  };
+
+  if (process.env.NODE_ENV === "development") {
+    responsePayload.stack = err.stack;
+  }
+
+  res.status(statusCode).json(responsePayload);
 };
 
 module.exports = errorHandler;

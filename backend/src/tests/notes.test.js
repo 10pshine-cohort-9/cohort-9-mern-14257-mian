@@ -14,64 +14,89 @@ describe("Notes API Endpoints", () => {
   };
 
   before(async () => {
-    await connectDB();
+    try {
+      await connectDB();
 
-    await request(app).post("/api/auth/signup").send(testUser);
-    const loginRes = await request(app).post("/api/auth/login").send({
-      email: testUser.email,
-      password: testUser.password,
-    });
+      await request(app).post("/api/auth/signup").send(testUser);
+      const loginRes = await request(app).post("/api/auth/login").send({
+        email: testUser.email,
+        password: testUser.password,
+      });
 
-    cookie = loginRes.headers["set-cookie"];
+      cookie = loginRes.headers["set-cookie"];
+    } catch (error) {
+      console.error("Notes before hook failed:", error);
+      throw error;
+    }
   });
 
   it("should not allow unauthorized access to get notes", async () => {
-    const res = await request(app).get("/api/notes");
-    expect(res.status).to.equal(401);
+    try {
+      const res = await request(app).get("/api/notes");
+      expect(res.status).to.equal(401);
+    } catch (error) {
+      throw error;
+    }
   });
 
   it("should successfully create a new note", async () => {
-    const res = await request(app)
-      .post("/api/notes")
-      .set("Cookie", cookie)
-      .send({
-        title: "My First Mocha Note",
-        content: "This is the test content for the note.",
-      });
+    try {
+      const res = await request(app)
+        .post("/api/notes")
+        .set("Cookie", cookie)
+        .send({
+          title: "My First Mocha Note",
+          content: "This is the test content for the note.",
+        });
 
-    expect(res.status).to.equal(201);
-    expect(res.body).to.have.property("id");
-    expect(res.body.title).to.equal("My First Mocha Note");
-    noteId = res.body.id;
+      expect(res.status).to.equal(201);
+      expect(res.body).to.have.property("id");
+      expect(res.body.title).to.equal("My First Mocha Note");
+      noteId = res.body.id;
+    } catch (error) {
+      throw error;
+    }
   });
 
   it("should successfully retrieve all user notes", async () => {
-    const res = await request(app).get("/api/notes").set("Cookie", cookie);
+    try {
+      const res = await request(app).get("/api/notes").set("Cookie", cookie);
 
-    expect(res.status).to.equal(200);
-    expect(res.body).to.be.an("array");
-    expect(res.body.length).to.be.greaterThan(0);
+      expect(res.status).to.equal(200);
+      expect(res.body).to.be.an("array");
+      expect(res.body.length).to.be.greaterThan(0);
+    } catch (error) {
+      throw error;
+    }
   });
 
   it("should successfully update an existing note", async () => {
-    const res = await request(app)
-      .put(`/api/notes/${noteId}`)
-      .set("Cookie", cookie)
-      .send({
-        title: "Updated Note Title",
-        content: "Updated content string.",
-      });
+    try {
+      const res = await request(app)
+        .put(`/api/notes/${noteId}`)
+        .set("Cookie", cookie)
+        .send({
+          title: "Updated Note Title",
+          content: "Updated content string.",
+        });
 
-    expect(res.status).to.equal(200);
-    expect(res.body.title).to.equal("Updated Note Title");
+      expect(res.status).to.equal(200);
+      expect(res.body.title).to.equal("Updated Note Title");
+    } catch (error) {
+      throw error;
+    }
   });
 
   it("should successfully delete a note", async () => {
-    const res = await request(app)
-      .delete(`/api/notes/${noteId}`)
-      .set("Cookie", cookie);
+    try {
+      const res = await request(app)
+        .delete(`/api/notes/${noteId}`)
+        .set("Cookie", cookie);
 
-    expect(res.status).to.equal(200);
-    expect(res.body).to.have.property("message");
+      expect(res.status).to.equal(200);
+      expect(res.body).to.have.property("message");
+    } catch (error) {
+      throw error;
+    }
   });
 });
