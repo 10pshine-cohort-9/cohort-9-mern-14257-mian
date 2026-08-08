@@ -4,7 +4,7 @@ const app = require("../server");
 const { pool, connectDB } = require("../config/db");
 
 describe("Notes API Endpoints", () => {
-  let token;
+  let cookie;
   let noteId;
 
   const testUser = {
@@ -21,7 +21,8 @@ describe("Notes API Endpoints", () => {
       email: testUser.email,
       password: testUser.password,
     });
-    token = loginRes.body.token;
+
+    cookie = loginRes.headers["set-cookie"];
   });
 
   it("should not allow unauthorized access to get notes", async () => {
@@ -32,7 +33,7 @@ describe("Notes API Endpoints", () => {
   it("should successfully create a new note", async () => {
     const res = await request(app)
       .post("/api/notes")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookie)
       .send({
         title: "My First Mocha Note",
         content: "This is the test content for the note.",
@@ -45,9 +46,7 @@ describe("Notes API Endpoints", () => {
   });
 
   it("should successfully retrieve all user notes", async () => {
-    const res = await request(app)
-      .get("/api/notes")
-      .set("Authorization", `Bearer ${token}`);
+    const res = await request(app).get("/api/notes").set("Cookie", cookie);
 
     expect(res.status).to.equal(200);
     expect(res.body).to.be.an("array");
@@ -57,7 +56,7 @@ describe("Notes API Endpoints", () => {
   it("should successfully update an existing note", async () => {
     const res = await request(app)
       .put(`/api/notes/${noteId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookie)
       .send({
         title: "Updated Note Title",
         content: "Updated content string.",
@@ -70,7 +69,7 @@ describe("Notes API Endpoints", () => {
   it("should successfully delete a note", async () => {
     const res = await request(app)
       .delete(`/api/notes/${noteId}`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Cookie", cookie);
 
     expect(res.status).to.equal(200);
     expect(res.body).to.have.property("message");

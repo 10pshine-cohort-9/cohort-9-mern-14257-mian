@@ -17,7 +17,9 @@ describe("Authentication API Endpoints", () => {
   it("should successfully register a new user", async () => {
     const res = await request(app).post("/api/auth/signup").send(testUser);
     expect(res.status).to.equal(201);
-    expect(res.body).to.have.property("token");
+    expect(res.headers["set-cookie"]).to.exist;
+    expect(res.headers["set-cookie"][0]).to.include("archive_token");
+    expect(res.body).to.not.have.property("token");
   });
 
   it("should return 400 when registering with an existing email", async () => {
@@ -31,7 +33,8 @@ describe("Authentication API Endpoints", () => {
       password: testUser.password,
     });
     expect(res.status).to.equal(200);
-    expect(res.body).to.have.property("token");
+    expect(res.headers["set-cookie"]).to.exist;
+    expect(res.headers["set-cookie"][0]).to.include("archive_token");
   });
 
   it("should return 401 for invalid login credentials", async () => {

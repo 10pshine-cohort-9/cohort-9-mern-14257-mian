@@ -3,6 +3,7 @@ const pinoHttp = require("pino-http");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 const logger = require("./utils/logger");
 const { connectDB } = require("./config/db");
 const noteRoutes = require("./routes/noteRoutes");
@@ -27,8 +28,14 @@ if (process.env.NODE_ENV !== "development") {
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 app.use(express.json());
+app.use(cookieParser());
 app.use(pinoHttp({ logger }));
 
 app.use("/api/auth", authRoutes);
