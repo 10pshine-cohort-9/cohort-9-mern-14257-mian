@@ -1,7 +1,6 @@
 const request = require("supertest");
 const { expect } = require("chai");
 const app = require("../server");
-const { pool, connectDB } = require("../config/db");
 
 describe("Authentication API Endpoints", () => {
   const testUser = {
@@ -9,15 +8,6 @@ describe("Authentication API Endpoints", () => {
     email: `test_${Date.now()}@example.com`,
     password: "securepassword123",
   };
-
-  before(async () => {
-    try {
-      await connectDB();
-    } catch (error) {
-      console.error("Auth before hook failed:", error);
-      throw error;
-    }
-  });
 
   it("should successfully register a new user", async () => {
     try {
@@ -27,6 +17,7 @@ describe("Authentication API Endpoints", () => {
       expect(res.headers["set-cookie"][0]).to.include("archive_token");
       expect(res.body).to.not.have.property("token");
     } catch (error) {
+      console.error("❌ Signup request/assertion failed:", error.message);
       throw error;
     }
   });
@@ -36,6 +27,7 @@ describe("Authentication API Endpoints", () => {
       const res = await request(app).post("/api/auth/signup").send(testUser);
       expect(res.status).to.equal(400);
     } catch (error) {
+      console.error("❌ Duplicate email registration failed:", error.message);
       throw error;
     }
   });
@@ -50,6 +42,7 @@ describe("Authentication API Endpoints", () => {
       expect(res.headers["set-cookie"]).to.exist;
       expect(res.headers["set-cookie"][0]).to.include("archive_token");
     } catch (error) {
+      console.error("❌ Valid login request failed:", error.message);
       throw error;
     }
   });
@@ -62,6 +55,7 @@ describe("Authentication API Endpoints", () => {
       });
       expect(res.status).to.equal(401);
     } catch (error) {
+      console.error("❌ Invalid login request failed:", error.message);
       throw error;
     }
   });

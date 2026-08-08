@@ -4,10 +4,11 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
+const rateLimit = require("express-rate-limit");
+
 const logger = require("./utils/logger");
 const { connectDB } = require("./config/db");
 const noteRoutes = require("./routes/noteRoutes");
-
 const authRoutes = require("./routes/authRoutes");
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -27,14 +28,26 @@ if (process.env.NODE_ENV !== "development") {
 
 const app = express();
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    message: "Too many requests from this IP, please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(helmet());
+app.use(limiter);
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
-app.use(express.json());
+
+app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(pinoHttp({ logger }));
 

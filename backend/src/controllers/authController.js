@@ -2,12 +2,13 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { pool } = require("../config/db");
 
-const COOKIE_OPTIONS = {
+// Dynamically evaluate environment variables when the function is called
+const getCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-};
+});
 
 // @desc    Register a new user
 // @route   POST /api/auth/signup
@@ -28,14 +29,20 @@ const signup = async (req, res, next) => {
       throw new Error("Please provide all required fields as valid text");
     }
 
-    // 2. Check for valid email format
+    // 2. Check password strength
+    if (password.length < 6) {
+      res.status(400);
+      throw new Error("Password must be at least 6 characters long");
+    }
+
+    // 3. Check for valid email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       res.status(400);
       throw new Error("Please provide a valid email format");
     }
 
-    // 3. Check if user already exists
+    // 4. Check if user already exists
     const [existingUsers] = await pool.query(
       "SELECT * FROM users WHERE email = ?",
       [email],
@@ -45,7 +52,7 @@ const signup = async (req, res, next) => {
       throw new Error("User already exists");
     }
 
-    // 4. Hash password and save user
+    // 5. Hash password and save user
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -54,12 +61,12 @@ const signup = async (req, res, next) => {
       [name, email, hashedPassword],
     );
 
-    // 5. Generate token and set cookie
+    // 6. Generate token and set cookie
     const token = jwt.sign({ id: result.insertId }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
-    res.cookie("archive_token", token, COOKIE_OPTIONS);
+    res.cookie("archive_token", token, getCookieOptions());
 
     res.status(201).json({
       id: result.insertId,
@@ -107,7 +114,7 @@ const login = async (req, res, next) => {
         expiresIn: "7d",
       });
 
-      res.cookie("archive_token", token, COOKIE_OPTIONS);
+      res.cookie("archive_token", token, getCookieOptions());
 
       res.json({
         id: user.id,
@@ -128,7 +135,7 @@ const login = async (req, res, next) => {
 const logout = async (req, res, next) => {
   try {
     res.cookie("archive_token", "", {
-      ...COOKIE_OPTIONS,
+      ...getCookieOptions(),
       maxAge: 0,
     });
     res.status(200).json({ message: "Logged out successfully" });

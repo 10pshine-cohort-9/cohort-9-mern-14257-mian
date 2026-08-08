@@ -1,8 +1,12 @@
 const logger = require("../utils/logger");
 
 const errorHandler = (err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   const statusCode =
-    res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
+    res.statusCode >= 400 && res.statusCode <= 599 ? res.statusCode : 500;
 
   logger.error({
     err: {

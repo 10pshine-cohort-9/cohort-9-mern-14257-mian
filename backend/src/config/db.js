@@ -13,8 +13,9 @@ const pool = mysql.createPool({
 });
 
 const connectDB = async () => {
+  let connection;
   try {
-    const connection = await pool.getConnection();
+    connection = await pool.getConnection();
     logger.info("✅ MySQL Database connected successfully");
 
     const createUserTable = `
@@ -42,11 +43,13 @@ const connectDB = async () => {
     `;
     await connection.query(createNotesTable);
     logger.info("✅ Notes table is ready");
-
-    connection.release();
   } catch (error) {
-    logger.error(`❌ MySQL connection failed: ${error.message}`);
-    process.exit(1);
+    logger.error(`❌ MySQL database setup failed: ${error.message}`);
+    throw error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 };
 
