@@ -13,8 +13,9 @@ const pool = mysql.createPool({
 });
 
 const connectDB = async () => {
+  let connection;
   try {
-    const connection = await pool.getConnection();
+    connection = await pool.getConnection();
     logger.info("✅ MySQL Database connected successfully");
 
     const createUserTable = `
@@ -26,14 +27,29 @@ const connectDB = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
-
     await connection.query(createUserTable);
     logger.info("✅ Users table is ready");
 
-    connection.release();
+    const createNotesTable = `
+      CREATE TABLE IF NOT EXISTS notes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        content TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `;
+    await connection.query(createNotesTable);
+    logger.info("✅ Notes table is ready");
   } catch (error) {
-    logger.error(`❌ MySQL connection failed: ${error.message}`);
-    process.exit(1);
+    logger.error(`❌ MySQL database setup failed: ${error.message}`);
+    throw error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 };
 
