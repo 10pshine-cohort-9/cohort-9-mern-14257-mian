@@ -3,6 +3,6 @@ import App from "./App";
 
 test("renders Notes App heading successfully", () => {
   render(<App />);
-  const headingElement = screen.getByText(/Notes App/i);
+  const headingElement = screen.getByRole("heading", { name: /Notes App/i });
   expect(headingElement).toBeInTheDocument();
 });
