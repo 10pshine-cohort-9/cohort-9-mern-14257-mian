@@ -40,8 +40,11 @@ export default function Signup() {
       return;
     }
 
+    // Fix: Configured API URL with fallback
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
     try {
-      const response = await fetch("http://localhost:5000/api/auth/signup", {
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -158,11 +161,15 @@ export default function Signup() {
                     onChange={handleChange}
                     disabled={isLoading}
                   />
+                  {/* Fix: Removed tabIndex and added ARIA attributes for accessibility */}
                   <button
                     type="button"
-                    className="absolute right-0 top-1/2 -translate-y-1/2 text-primary/50 hover:text-primary transition-colors"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-primary/50 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-secondary rounded"
                     onClick={togglePasswordVisibility}
-                    tabIndex="-1"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    aria-pressed={showPassword}
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
