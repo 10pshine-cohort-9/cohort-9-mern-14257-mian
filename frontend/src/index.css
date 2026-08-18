@@ -1,1 +1,32 @@
 @import "tailwindcss";
+
+@theme {
+  --font-headline: "Playfair Display", serif;
+  --font-body: "Source Sans 3", sans-serif;
+  --color-surface: #f8faf9;
+  --color-surface-dim: #d8dad9;
+  --color-surface-container: #eceeed;
+  --color-primary: #463929;
+  --color-secondary: #904952;
+  --color-outline: #7e766d;
+  --color-error: #ef4444;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-primary);
+  background: linear-gradient(135deg, #f4dfc9 0%, #d7c3ae 100%);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-headline);
+}
