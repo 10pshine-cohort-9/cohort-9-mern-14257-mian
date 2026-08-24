@@ -294,7 +294,6 @@ export default function Dashboard() {
       </div>
     );
   } else if (error && notes.length === 0) {
-    // If the request fails entirely, don't show an empty grid or toolbars below the error banner
     mainContent = null;
   } else if (notes.length === 0 && !error) {
     mainContent = (
@@ -371,7 +370,6 @@ export default function Dashboard() {
               note.updatedAt;
             const noteId = note.id || note._id;
 
-            // Guard missing content and titles from triggering a hard crash
             const noteContent = note.content || "";
             const noteTitle = note.title || "";
 
@@ -386,16 +384,7 @@ export default function Dashboard() {
             return (
               <article
                 key={noteId}
-                role="button"
-                tabIndex={0}
-                onClick={() => setViewingNote(note)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setViewingNote(note);
-                  }
-                }}
-                className="bg-surface border border-outline/20 p-6 rounded-xl hover:-translate-y-1 hover:shadow-md transition-all duration-300 relative flex flex-col cursor-pointer h-72 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:border-transparent"
+                className="bg-surface border border-outline/20 rounded-xl hover:-translate-y-1 hover:shadow-md transition-all duration-300 relative flex flex-col h-72 focus-within:ring-2 focus-within:ring-secondary focus-within:border-transparent"
               >
                 <div className="absolute top-4 right-4 flex gap-1.5 z-10">
                   <button
@@ -404,54 +393,70 @@ export default function Dashboard() {
                       setEditingNote(note);
                       setIsEditorOpen(true);
                     }}
-                    className="text-outline hover:text-secondary p-1.5 rounded-md hover:bg-primary/5 transition-colors bg-surface-bright border border-outline/10 shadow-sm"
+                    className="text-outline hover:text-secondary p-1.5 rounded-md hover:bg-primary/5 transition-colors bg-surface-bright border border-outline/10 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={(e) => handleDeleteNote(noteId, e)}
-                    className="text-outline hover:text-error p-1.5 rounded-md hover:bg-primary/5 transition-colors bg-surface-bright border border-outline/10 shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteNote(noteId, e);
+                    }}
+                    className="text-outline hover:text-error p-1.5 rounded-md hover:bg-primary/5 transition-colors bg-surface-bright border border-outline/10 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-error"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <div className="mb-4 border-b border-outline/10 pb-4 pr-16 shrink-0">
-                  <h3 className="font-headline text-lg font-bold text-primary mb-2 line-clamp-1">
-                    {highlightTextNode(noteTitle, searchQuery)}
-                  </h3>
-                  {noteDate && (
-                    <p className="text-xs font-semibold text-outline inline-block">
-                      {new Date(noteDate).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  )}
-                </div>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setViewingNote(note)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setViewingNote(note);
+                    }
+                  }}
+                  className="flex-1 p-6 flex flex-col cursor-pointer outline-none rounded-xl overflow-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-secondary"
+                >
+                  <div className="mb-4 border-b border-outline/10 pb-4 pr-16 shrink-0">
+                    <h3 className="font-headline text-lg font-bold text-primary mb-2 line-clamp-1">
+                      {highlightTextNode(noteTitle, searchQuery)}
+                    </h3>
+                    {noteDate && (
+                      <p className="text-xs font-semibold text-outline inline-block">
+                        {new Date(noteDate).toLocaleString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="flex-1 overflow-hidden">
-                  {searchSnippet ? (
-                    <div
-                      className={`text-sm text-primary/80 leading-relaxed whitespace-pre-wrap line-clamp-6 transition-all duration-500 ${isPrivacyMode ? "blur-sm opacity-65 select-none pointer-events-none" : ""}`}
-                    >
-                      {highlightTextNode(searchSnippet, searchQuery)}
-                    </div>
-                  ) : (
-                    <div
-                      className={`text-sm text-primary/80 leading-relaxed whitespace-pre-wrap line-clamp-6 prose prose-sm prose-primary transition-all duration-500 ${
-                        isPrivacyMode
-                          ? "blur-sm opacity-65 select-none pointer-events-none"
-                          : ""
-                      }`}
-                      dangerouslySetInnerHTML={{
-                        __html: highlightedContent,
-                      }}
-                    />
-                  )}
+                  <div className="flex-1 overflow-hidden">
+                    {searchSnippet ? (
+                      <div
+                        className={`text-sm text-primary/80 leading-relaxed whitespace-pre-wrap line-clamp-6 transition-all duration-500 ${isPrivacyMode ? "blur-sm opacity-65 select-none pointer-events-none" : ""}`}
+                      >
+                        {highlightTextNode(searchSnippet, searchQuery)}
+                      </div>
+                    ) : (
+                      <div
+                        className={`text-sm text-primary/80 leading-relaxed whitespace-pre-wrap line-clamp-6 prose prose-sm prose-primary transition-all duration-500 ${
+                          isPrivacyMode
+                            ? "blur-sm opacity-65 select-none pointer-events-none"
+                            : ""
+                        }`}
+                        dangerouslySetInnerHTML={{
+                          __html: highlightedContent,
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
               </article>
             );

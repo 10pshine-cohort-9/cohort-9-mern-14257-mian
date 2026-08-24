@@ -18,12 +18,12 @@ const escapeHtml = (text) =>
 
 const formatContentForEditor = (rawContent) => {
   if (!rawContent) return "";
-  if (/^\s*<[a-z][\s\S]*>/i.test(rawContent)) {
+  // Only detect actual editor structural tags, not just any <text>
+  if (/^\s*<(p|ul|ol|h[1-6]|blockquote|pre)[\s>]/i.test(rawContent)) {
     return rawContent;
   }
   return rawContent
     .split("\n")
-    .filter((line) => line.trim() !== "")
     .map((line) => `<p>${escapeHtml(line)}</p>`)
     .join("");
 };

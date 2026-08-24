@@ -36,6 +36,11 @@ const createNote = async (req, res, next) => {
     const cleanTitle = title.trim();
     const cleanContent = DOMPurify.sanitize(content.trim());
 
+    if (!cleanContent) {
+      res.status(400);
+      throw new Error("Content cannot be empty or contain only unsafe markup");
+    }
+
     const [result] = await pool.query(
       "INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)",
       [req.user.id, cleanTitle, cleanContent],
@@ -71,6 +76,11 @@ const updateNote = async (req, res, next) => {
 
     const cleanTitle = title.trim();
     const cleanContent = DOMPurify.sanitize(content.trim());
+
+    if (!cleanContent) {
+      res.status(400);
+      throw new Error("Content cannot be empty or contain only unsafe markup");
+    }
 
     const [result] = await pool.query(
       "UPDATE notes SET title = ?, content = ? WHERE id = ? AND user_id = ?",
