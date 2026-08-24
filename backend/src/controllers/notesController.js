@@ -1,7 +1,5 @@
 const { pool } = require("../config/db");
 
-// @desc    Get all notes for logged-in user
-// @route   GET /api/notes
 const getNotes = async (req, res, next) => {
   try {
     const [notes] = await pool.query(
@@ -14,8 +12,6 @@ const getNotes = async (req, res, next) => {
   }
 };
 
-// @desc    Create a new note
-// @route   POST /api/notes
 const createNote = async (req, res, next) => {
   try {
     const { title, content } = req.body;
@@ -47,8 +43,6 @@ const createNote = async (req, res, next) => {
   }
 };
 
-// @desc    Update a note
-// @route   PUT /api/notes/:id
 const updateNote = async (req, res, next) => {
   try {
     const { title, content } = req.body;
@@ -66,7 +60,6 @@ const updateNote = async (req, res, next) => {
       throw new Error("Please provide a valid title and content");
     }
 
-    // 2. Optimized single-query update using affectedRows
     const [result] = await pool.query(
       "UPDATE notes SET title = ?, content = ? WHERE id = ? AND user_id = ?",
       [title.trim(), content.trim(), noteId, req.user.id],
@@ -85,8 +78,6 @@ const updateNote = async (req, res, next) => {
   }
 };
 
-// @desc    Delete a note
-// @route   DELETE /api/notes/:id
 const deleteNote = async (req, res, next) => {
   try {
     const noteId = req.params.id;

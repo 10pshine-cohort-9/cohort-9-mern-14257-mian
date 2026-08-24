@@ -14,7 +14,6 @@ describe("Notes API Endpoints", () => {
 
   before(async () => {
     try {
-      // Register and login to get the auth cookie for note routes
       await request(app).post("/api/auth/signup").send(testUser);
       const loginRes = await request(app).post("/api/auth/login").send({
         email: testUser.email,
@@ -23,7 +22,7 @@ describe("Notes API Endpoints", () => {
 
       cookie = loginRes.headers["set-cookie"];
     } catch (error) {
-      console.error("❌ Notes test setup (auth flow) failed:", error.message);
+      console.error("Notes test setup failed:", error.message);
       throw error;
     }
   });
@@ -33,7 +32,7 @@ describe("Notes API Endpoints", () => {
       const res = await request(app).get("/api/notes");
       expect(res.status).to.equal(401);
     } catch (error) {
-      console.error("❌ Unauthorized access check failed:", error.message);
+      console.error("Unauthorized access check failed:", error.message);
       throw error;
     }
   });
@@ -53,7 +52,7 @@ describe("Notes API Endpoints", () => {
       expect(res.body.title).to.equal("My First Mocha Note");
       noteId = res.body.id;
     } catch (error) {
-      console.error("❌ Note creation test failed:", error.message);
+      console.error("Note creation test failed:", error.message);
       throw error;
     }
   });
@@ -66,7 +65,7 @@ describe("Notes API Endpoints", () => {
       expect(res.body).to.be.an("array");
       expect(res.body.length).to.be.greaterThan(0);
     } catch (error) {
-      console.error("❌ Retrieve notes test failed:", error.message);
+      console.error("Retrieve notes test failed:", error.message);
       throw error;
     }
   });
@@ -84,7 +83,7 @@ describe("Notes API Endpoints", () => {
       expect(res.status).to.equal(200);
       expect(res.body.title).to.equal("Updated Note Title");
     } catch (error) {
-      console.error("❌ Update note test failed:", error.message);
+      console.error("Update note test failed:", error.message);
       throw error;
     }
   });
@@ -98,7 +97,7 @@ describe("Notes API Endpoints", () => {
       expect(res.status).to.equal(200);
       expect(res.body).to.have.property("message");
     } catch (error) {
-      console.error("❌ Delete note test failed:", error.message);
+      console.error("Delete note test failed:", error.message);
       throw error;
     }
   });
