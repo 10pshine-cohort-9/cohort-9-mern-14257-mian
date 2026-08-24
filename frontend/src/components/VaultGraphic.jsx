@@ -139,7 +139,7 @@ export default function VaultGraphic() {
               if they are looking at your screen.
             </text>
             <text x="0" y="116" fontSize="16" fontWeight="700">
-              We knew you wanted that
+              We knew you wanted that😉
             </text>
           </g>
         </g>

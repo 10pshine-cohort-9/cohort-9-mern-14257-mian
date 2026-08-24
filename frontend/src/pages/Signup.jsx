@@ -9,11 +9,13 @@ export default function Signup() {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,6 +24,10 @@ export default function Signup() {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   const handleSubmit = async (e) => {
@@ -40,8 +46,19 @@ export default function Signup() {
       return;
     }
 
-    // Fix: Configured API URL with fallback
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+    const payload = {
+      name: formData.name,
+      email: trimmedEmail,
+      password: formData.password,
+    };
 
     try {
       const response = await fetch(`${API_URL}/api/auth/signup`, {
@@ -49,7 +66,7 @@ export default function Signup() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...formData, email: trimmedEmail }),
+        body: JSON.stringify(payload),
         credentials: "include",
       });
 
@@ -161,7 +178,6 @@ export default function Signup() {
                     onChange={handleChange}
                     disabled={isLoading}
                   />
-                  {/* Fix: Removed tabIndex and added ARIA attributes for accessibility */}
                   <button
                     type="button"
                     className="absolute right-0 top-1/2 -translate-y-1/2 text-primary/50 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-secondary rounded"
@@ -172,6 +188,45 @@ export default function Signup() {
                     aria-pressed={showPassword}
                   >
                     {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  className="block font-body font-semibold text-sm text-primary/80 mb-0.5 text-left"
+                  htmlFor="confirmPassword"
+                >
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <input
+                    className="w-full bg-transparent border-0 border-b border-outline text-primary focus:ring-0 focus:border-b-2 focus:border-secondary font-body px-0 py-1.5 transition-all focus:outline-none placeholder:text-outline/60 pr-8"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    placeholder="••••••••"
+                    required
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-primary/50 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-secondary rounded"
+                    onClick={toggleConfirmPasswordVisibility}
+                    aria-label={
+                      showConfirmPassword
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
+                    aria-pressed={showConfirmPassword}
+                  >
+                    {showConfirmPassword ? (
                       <EyeOff className="w-4 h-4" />
                     ) : (
                       <Eye className="w-4 h-4" />

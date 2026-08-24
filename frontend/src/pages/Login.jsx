@@ -33,7 +33,6 @@ export default function Login() {
 
     const trimmedEmail = formData.email.trim();
 
-    // Fix: Configured API URL with fallback
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
     try {
@@ -134,7 +133,6 @@ export default function Login() {
                     onChange={handleChange}
                     disabled={isLoading}
                   />
-                  {/* Fix: Removed tabIndex and added ARIA attributes for accessibility */}
                   <button
                     type="button"
                     className="absolute right-0 top-1/2 -translate-y-1/2 text-primary/50 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-secondary rounded"
