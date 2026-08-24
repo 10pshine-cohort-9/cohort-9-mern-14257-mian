@@ -220,7 +220,9 @@ export default function Signup() {
                     className="absolute right-0 top-1/2 -translate-y-1/2 text-primary/50 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-secondary rounded"
                     onClick={toggleConfirmPasswordVisibility}
                     aria-label={
-                      showConfirmPassword ? "Hide password" : "Show password"
+                      showConfirmPassword
+                        ? "Hide confirm password"
+                        : "Show confirm password"
                     }
                     aria-pressed={showConfirmPassword}
                   >

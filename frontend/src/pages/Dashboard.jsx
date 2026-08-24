@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import DOMPurify from "dompurify";
 import {
   Search,
   Plus,
@@ -292,6 +293,9 @@ export default function Dashboard() {
         <p className="text-sm font-semibold">Loading your vault...</p>
       </div>
     );
+  } else if (error && notes.length === 0) {
+    // If the request fails entirely, don't show an empty grid or toolbars below the error banner
+    mainContent = null;
   } else if (notes.length === 0 && !error) {
     mainContent = (
       <div className="w-full flex flex-col items-center justify-center py-24 text-center">
@@ -367,16 +371,31 @@ export default function Dashboard() {
               note.updatedAt;
             const noteId = note.id || note._id;
 
+            // Guard missing content and titles from triggering a hard crash
+            const noteContent = note.content || "";
+            const noteTitle = note.title || "";
+
             const searchSnippet = searchQuery
-              ? getSnippet(note.content, searchQuery)
+              ? getSnippet(noteContent, searchQuery)
               : null;
-            const highlightedContent = highlightHTML(note.content, searchQuery);
+            const highlightedContent = highlightHTML(
+              DOMPurify.sanitize(noteContent),
+              searchQuery,
+            );
 
             return (
               <article
                 key={noteId}
+                role="button"
+                tabIndex={0}
                 onClick={() => setViewingNote(note)}
-                className="bg-surface border border-outline/20 p-6 rounded-xl hover:-translate-y-1 hover:shadow-md transition-all duration-300 relative flex flex-col cursor-pointer h-72"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setViewingNote(note);
+                  }
+                }}
+                className="bg-surface border border-outline/20 p-6 rounded-xl hover:-translate-y-1 hover:shadow-md transition-all duration-300 relative flex flex-col cursor-pointer h-72 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:border-transparent"
               >
                 <div className="absolute top-4 right-4 flex gap-1.5 z-10">
                   <button
@@ -399,7 +418,7 @@ export default function Dashboard() {
 
                 <div className="mb-4 border-b border-outline/10 pb-4 pr-16 shrink-0">
                   <h3 className="font-headline text-lg font-bold text-primary mb-2 line-clamp-1">
-                    {highlightTextNode(note.title, searchQuery)}
+                    {highlightTextNode(noteTitle, searchQuery)}
                   </h3>
                   {noteDate && (
                     <p className="text-xs font-semibold text-outline inline-block">

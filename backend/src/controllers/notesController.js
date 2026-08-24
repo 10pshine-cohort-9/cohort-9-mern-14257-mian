@@ -1,4 +1,9 @@
 const { pool } = require("../config/db");
+const createDOMPurify = require("dompurify");
+const { JSDOM } = require("jsdom");
+
+const window = new JSDOM("").window;
+const DOMPurify = createDOMPurify(window);
 
 const getNotes = async (req, res, next) => {
   try {
@@ -15,6 +20,7 @@ const getNotes = async (req, res, next) => {
 const createNote = async (req, res, next) => {
   try {
     const { title, content } = req.body;
+
     if (
       !title ||
       typeof title !== "string" ||
@@ -27,16 +33,19 @@ const createNote = async (req, res, next) => {
       throw new Error("Please provide a valid title and content");
     }
 
+    const cleanTitle = title.trim();
+    const cleanContent = DOMPurify.sanitize(content.trim());
+
     const [result] = await pool.query(
       "INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)",
-      [req.user.id, title.trim(), content.trim()],
+      [req.user.id, cleanTitle, cleanContent],
     );
 
     res.status(201).json({
       id: result.insertId,
       user_id: req.user.id,
-      title: title.trim(),
-      content: content.trim(),
+      title: cleanTitle,
+      content: cleanContent,
     });
   } catch (error) {
     next(error);
@@ -60,9 +69,12 @@ const updateNote = async (req, res, next) => {
       throw new Error("Please provide a valid title and content");
     }
 
+    const cleanTitle = title.trim();
+    const cleanContent = DOMPurify.sanitize(content.trim());
+
     const [result] = await pool.query(
       "UPDATE notes SET title = ?, content = ? WHERE id = ? AND user_id = ?",
-      [title.trim(), content.trim(), noteId, req.user.id],
+      [cleanTitle, cleanContent, noteId, req.user.id],
     );
 
     if (result.affectedRows === 0) {
@@ -70,9 +82,11 @@ const updateNote = async (req, res, next) => {
       throw new Error("Note not found or unauthorized");
     }
 
-    res
-      .status(200)
-      .json({ id: noteId, title: title.trim(), content: content.trim() });
+    res.status(200).json({
+      id: noteId,
+      title: cleanTitle,
+      content: cleanContent,
+    });
   } catch (error) {
     next(error);
   }

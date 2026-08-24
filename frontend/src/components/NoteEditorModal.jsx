@@ -13,19 +13,18 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 
+const escapeHtml = (text) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 const formatContentForEditor = (rawContent) => {
   if (!rawContent) return "";
-  if (
-    rawContent.includes("<p>") ||
-    rawContent.includes("<ul>") ||
-    rawContent.includes("<ol>")
-  ) {
+  if (/^\s*<[a-z][\s\S]*>/i.test(rawContent)) {
     return rawContent;
   }
   return rawContent
     .split("\n")
     .filter((line) => line.trim() !== "")
-    .map((line) => `<p>${line}</p>`)
+    .map((line) => `<p>${escapeHtml(line)}</p>`)
     .join("");
 };
 

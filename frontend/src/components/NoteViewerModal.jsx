@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { X, Edit3, Trash2 } from "lucide-react";
 
 export default function NoteViewerModal({ note, onClose, onEdit, onDelete }) {
@@ -28,6 +29,7 @@ export default function NoteViewerModal({ note, onClose, onEdit, onDelete }) {
           </div>
           <button
             onClick={onClose}
+            aria-label="Close modal"
             className="text-outline hover:text-primary transition-colors bg-surface/80 rounded p-1 mt-1"
           >
             <X className="w-5 h-5" />
@@ -37,7 +39,9 @@ export default function NoteViewerModal({ note, onClose, onEdit, onDelete }) {
         <div className="overflow-y-auto custom-scrollbar flex-1 pr-2 mb-4">
           <div
             className="prose prose-sm prose-primary max-w-none text-primary/90 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: note.content }}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(note.content || ""),
+            }}
           />
         </div>
 
