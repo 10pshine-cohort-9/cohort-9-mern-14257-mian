@@ -120,6 +120,7 @@ const login = async (req, res, next) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        avatar_url: user.avatar_url,
       });
     } else {
       res.status(401);
@@ -149,7 +150,7 @@ const logout = async (req, res, next) => {
 const getMe = async (req, res, next) => {
   try {
     const [users] = await pool.query(
-      "SELECT id, name, email FROM users WHERE id = ?",
+      "SELECT id, name, email, avatar_url FROM users WHERE id = ?",
       [req.user.id],
     );
 
@@ -158,10 +159,51 @@ const getMe = async (req, res, next) => {
       throw new Error("User not found");
     }
 
-    res.status(200).json(users[0]);
+    const [notes] = await pool.query(
+      "SELECT COUNT(*) as count FROM notes WHERE user_id = ?",
+      [req.user.id],
+    );
+
+    res.status(200).json({
+      ...users[0],
+      total_notes: notes[0].count,
+    });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = { signup, login, logout, getMe };
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+    let avatar_url = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (!name || !name.trim()) {
+      res.status(400);
+      throw new Error("Name is required");
+    }
+
+    let query = "UPDATE users SET name = ?";
+    let params = [name.trim()];
+
+    if (avatar_url) {
+      query += ", avatar_url = ?";
+      params.push(avatar_url);
+    }
+
+    query += " WHERE id = ?";
+    params.push(req.user.id);
+
+    await pool.query(query, params);
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      name: name.trim(),
+      ...(avatar_url && { avatar_url }),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { signup, login, logout, getMe, updateProfile };
