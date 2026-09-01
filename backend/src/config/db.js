@@ -16,7 +16,7 @@ const connectDB = async () => {
   let connection;
   try {
     connection = await pool.getConnection();
-    logger.info("✅ MySQL Database connected successfully");
+    logger.info("MySQL Database connected successfully");
 
     const createUserTable = `
       CREATE TABLE IF NOT EXISTS users (
@@ -28,7 +28,7 @@ const connectDB = async () => {
       )
     `;
     await connection.query(createUserTable);
-    logger.info("✅ Users table is ready");
+    logger.info("Users table is ready");
 
     const createNotesTable = `
       CREATE TABLE IF NOT EXISTS notes (
@@ -42,9 +42,9 @@ const connectDB = async () => {
       )
     `;
     await connection.query(createNotesTable);
-    logger.info("✅ Notes table is ready");
+    logger.info("Notes table is ready");
   } catch (error) {
-    logger.error(`❌ MySQL database setup failed: ${error.message}`);
+    logger.error(`MySQL database setup failed: ${error.message}`);
     throw error;
   } finally {
     if (connection) {
