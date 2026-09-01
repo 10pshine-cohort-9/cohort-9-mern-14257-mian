@@ -1,7 +1,6 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const multer = require("multer");
-const path = require("path");
 const {
   signup,
   login,
@@ -13,23 +12,25 @@ const { protect } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
+const MIME_TYPE_MAP = {
+  "image/jpeg": ".jpg",
+  "image/jpg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
+    const ext = MIME_TYPE_MAP[file.mimetype] || ".jpg";
+    cb(null, `${req.user.id}-${Date.now()}${ext}`);
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/jpg",
-  ];
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  if (MIME_TYPE_MAP[file.mimetype]) {
     cb(null, true);
   } else {
     cb(

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Upload, Loader2, User } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function ProfileModal({
   user,
@@ -7,20 +9,42 @@ export default function ProfileModal({
   onClose,
   onProfileUpdate,
 }) {
+  const [prevUser, setPrevUser] = useState(user);
   const [name, setName] = useState(user?.name || "");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(
-    user?.avatar_url ? `http://localhost:5000${user.avatar_url}` : null,
+    user?.avatar_url ? `${API_URL}${user.avatar_url}` : null,
   );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Adjust state during render when the user prop changes
+  if (user !== prevUser) {
+    setPrevUser(user);
+    setName(user?.name || "");
+    setPreview(user?.avatar_url ? `${API_URL}${user.avatar_url}` : null);
+    setFile(null);
+    setError("");
+  }
+
+  // Revoke object URL on unmount or preview update to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
+    const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.size > 2 * 1024 * 1024) {
         setError("Image must be smaller than 2MB");
         return;
+      }
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
       }
       setFile(selectedFile);
       setPreview(URL.createObjectURL(selectedFile));
@@ -38,7 +62,7 @@ export default function ProfileModal({
     if (file) formData.append("avatar", file);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/profile", {
+      const response = await fetch(`${API_URL}/api/auth/profile`, {
         method: "PUT",
         body: formData,
         credentials: "include",
@@ -49,6 +73,7 @@ export default function ProfileModal({
         throw new Error(data.message || "Failed to update profile");
 
       onProfileUpdate(data);
+      if (onClose) onClose();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -57,16 +82,26 @@ export default function ProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/40 backdrop-blur-sm animate-in fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/40 backdrop-blur-sm animate-in fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profile-modal-title"
+    >
       <div className="w-full max-w-sm bg-surface rounded-xl border border-outline/20 p-6 shadow-xl relative">
         <button
+          type="button"
           onClick={onClose}
+          aria-label="Close modal"
           className="absolute top-4 right-4 text-outline hover:text-primary transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="font-headline text-xl font-bold text-primary mb-6">
+        <h2
+          id="profile-modal-title"
+          className="font-headline text-xl font-bold text-primary mb-6"
+        >
           Your Profile
         </h2>
 
@@ -89,9 +124,14 @@ export default function ProfileModal({
                 <User className="w-10 h-10 text-primary/40" />
               )}
             </div>
-            <label className="absolute inset-0 flex items-center justify-center bg-primary/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+            <label
+              htmlFor="profile-avatar-input"
+              aria-label="Upload avatar"
+              className="absolute inset-0 flex items-center justify-center bg-primary/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            >
               <Upload className="w-6 h-6 text-surface" />
               <input
+                id="profile-avatar-input"
                 type="file"
                 accept="image/jpeg, image/png, image/webp"
                 className="hidden"
@@ -101,10 +141,14 @@ export default function ProfileModal({
           </div>
 
           <div className="w-full mb-4">
-            <label className="block text-xs font-semibold text-primary/80 mb-1">
+            <label
+              htmlFor="profile-name-input"
+              className="block text-xs font-semibold text-primary/80 mb-1"
+            >
               Full Name
             </label>
             <input
+              id="profile-name-input"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}

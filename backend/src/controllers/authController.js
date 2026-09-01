@@ -159,7 +159,7 @@ const updateProfile = async (req, res, next) => {
     const { name } = req.body;
     let avatar_url = req.file ? `/uploads/${req.file.filename}` : null;
 
-    if (!name || !name.trim()) {
+    if (typeof name !== "string" || !name.trim()) {
       res.status(400);
       throw new Error("Name is required");
     }
