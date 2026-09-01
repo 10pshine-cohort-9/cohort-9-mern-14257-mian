@@ -24,11 +24,28 @@ const connectDB = async () => {
         name VARCHAR(100) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        avatar_url VARCHAR(255) DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
     await connection.query(createUserTable);
     logger.info("Users table is ready");
+
+    try {
+      await connection.query(`
+        ALTER TABLE users 
+        ADD COLUMN avatar_url VARCHAR(255) DEFAULT NULL AFTER password
+      `);
+      logger.info("avatar_url column added to users table");
+    } catch (migrationError) {
+      if (
+        migrationError.errno === 1060 ||
+        migrationError.code === "ER_DUP_FIELDNAME"
+      ) {
+      } else {
+        throw migrationError;
+      }
+    }
 
     const createNotesTable = `
       CREATE TABLE IF NOT EXISTS notes (

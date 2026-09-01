@@ -5,6 +5,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
+const path = require("path");
 
 const logger = require("./utils/logger");
 const { connectDB } = require("./config/db");
@@ -38,7 +39,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(limiter);
 app.use(
   cors({
@@ -50,6 +51,8 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(pinoHttp({ logger }));
+
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);

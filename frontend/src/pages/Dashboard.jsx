@@ -13,9 +13,11 @@ import {
   ArrowUpDown,
   Lock,
   Unlock,
+  User,
 } from "lucide-react";
 import NoteEditorModal from "../components/NoteEditorModal";
 import NoteViewerModal from "../components/NoteViewerModal";
+import ProfileModal from "../components/ProfileModal";
 
 const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -77,6 +79,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const [notes, setNotes] = useState([]);
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,8 +88,8 @@ export default function Dashboard() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
-
   const [viewingNote, setViewingNote] = useState(null);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -98,7 +101,7 @@ export default function Dashboard() {
     let isMounted = true;
     const controller = new AbortController();
 
-    async function loadNotes() {
+    async function loadData() {
       try {
         const response = await fetch(`${API_URL}/api/notes`, {
           method: "GET",
@@ -117,6 +120,22 @@ export default function Dashboard() {
           setNotes(Array.isArray(data) ? data : data.data || []);
           setIsLoading(false);
         }
+
+        try {
+          const userRes = await fetch(`${API_URL}/api/auth/me`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            signal: controller.signal,
+          });
+
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            if (isMounted) setUser(userData);
+          }
+        } catch (e) {
+          console.error("Failed to fetch user profile", e);
+        }
       } catch (err) {
         if (err.name !== "AbortError" && isMounted) {
           setError(
@@ -129,7 +148,7 @@ export default function Dashboard() {
       }
     }
 
-    loadNotes();
+    loadData();
 
     return () => {
       isMounted = false;
@@ -505,6 +524,22 @@ export default function Dashboard() {
           </button>
 
           <button
+            onClick={() => setIsProfileOpen(true)}
+            aria-label="Open profile"
+            className="w-9 h-9 rounded-full bg-primary/5 border border-outline/20 overflow-hidden hover:ring-2 hover:ring-secondary transition-all flex items-center justify-center ml-2 shrink-0"
+          >
+            {user?.avatar_url ? (
+              <img
+                src={`${API_URL}${user.avatar_url}`}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-5 h-5 text-primary/60" />
+            )}
+          </button>
+
+          <button
             onClick={handleLogout}
             disabled={isLoggingOut}
             className="text-primary/70 hover:text-secondary transition-colors p-2 rounded-md hover:bg-primary/5 active:scale-95 disabled:opacity-50"
@@ -553,6 +588,22 @@ export default function Dashboard() {
           initialData={editingNote}
           isSaving={isSaving}
           error={modalError}
+        />
+      )}
+
+      {isProfileOpen && (
+        <ProfileModal
+          user={user}
+          totalNotes={notes.length}
+          onClose={() => setIsProfileOpen(false)}
+          onProfileUpdate={(updatedData) => {
+            setUser({
+              ...user,
+              name: updatedData.name,
+              avatar_url: updatedData.avatar_url || user.avatar_url,
+            });
+            setIsProfileOpen(false);
+          }}
         />
       )}
     </div>
